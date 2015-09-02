@@ -1,0 +1,84 @@
+#!/bin/bash
+# unpack an archives and copy it to NAS
+
+# steps:
+# find the smallest archive or dir in ./
+#   (unpack if necessary)
+# rename with prefix
+# sync to 'pending' dir, auto-retry if fail
+# delete local copy
+
+# now includes brief pauses for enhanced legibility!
+# ALSO: talks so you don't have to pay attention!
+
+pending="/Volumes/music/dl-legit/pending/"
+maxtries=5
+prefix='!!-'
+
+function extract {
+    # I use The Unarchiver, which automagically creates a subdir and
+    #   trashes the archive after extraction
+    # if you prefer something else, please adjust this function
+    open -W "$1"
+}
+
+# -------------------------------------------------------
+# --- stuff below here probably doesn't need editing ----
+# -------------------------------------------------------
+
+# need to be able to manually exit out of the loop
+trap "echo '--- Exited!'; exit 23;" SIGINT SIGTERM
+
+function notify {
+    voice="Zarvox"
+    if [ "$2" ]; then
+        voice="$2"
+    fi
+    tput bel
+    say -v "$voice" $1
+}
+
+function error {
+    echo $1
+    notify "THE SYSTEM, IS DOWN" Ralph
+    exit 9000
+}
+
+zip=`ls -Sr | head -n1`
+if [ -f "$zip" ]; then
+    echo "--- Found file '$zip', decompressing..."
+    sleep 1
+
+    extract "$zip"
+fi
+
+dir=`ls -Sr | head -n1 | tr -d '/'`
+if [ -d "$dir" ]; then
+    echo "--- Found dir '$dir', syncing..."
+    sleep 1
+
+    # TODO: check whether $dir already starts with $prefix and skip rename
+    rename -A "$prefix" "$dir"
+    dir="$prefix$dir"
+
+    let i=1
+    while ! rsync -zva "$dir" "$pending"; do
+        if [ $i -ge $maxtries ]; then
+            error "--- OOPS: failed to sync after $i attempts, bailing!"
+        fi
+
+        let i=$i+1
+        printf "\n\n--- OOPS: sync failure, attempting #$i\n\n"
+    done
+    notify "TAKE OFF EVERY ZIG"
+
+    echo -n "looks ok? "
+    read ok
+    if [ "$ok" = "y" ]; then
+        echo "--- k, deleting local copy"
+        notify "DELETED!"
+        rm -rv "$dir"
+    fi
+else
+    error "--- OOPS: '$dir' isn't a dir, something's funky"
+fi
