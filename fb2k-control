@@ -1,0 +1,15 @@
+#!/bin/bash
+# control foobar2000 via the foo_httpcontrol component
+# see: https://bitbucket.org/oblikoamorale/foo_httpcontrol
+
+HOST="localhost:8888"
+
+# TODO: add more commands
+case "$1" in
+    toggle)
+        curl "http://$HOST/default/?cmd=PlayOrPause"
+        ;;
+    *)
+        echo "\"$1\" is not a supported command"
+        ;;
+esac
