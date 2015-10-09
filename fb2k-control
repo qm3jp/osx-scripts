@@ -17,7 +17,10 @@ case "$1" in
     prev)
         curl "http://$HOST/default?cmd=StartPrevious"
         ;;
-    start) # restart current track, better name for this cmd is needed
+    restart) # restart current track; XXX: better name for this cmd pls
+        # Start by itself will unpause if paused, or start over if currently playing
+        # need to stop first for consistent behavior
+        curl "http://$HOST/default?cmd=Stop"
         curl "http://$HOST/default?cmd=Start"
         ;;
     # TODO: seek commands
