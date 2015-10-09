@@ -4,11 +4,23 @@
 
 HOST="localhost:8888"
 
-# TODO: add more commands
 case "$1" in
     toggle)
         curl "http://$HOST/default/?cmd=PlayOrPause"
         ;;
+    next)
+        curl "http://$HOST/default/?cmd=StartNext"
+        ;;
+    rand)
+        curl "http://$HOST/default/?cmd=StartRandom"
+        ;;
+    prev)
+        curl "http://$HOST/default?cmd=StartPrevious"
+        ;;
+    start) # restart current track, better name for this cmd is needed
+        curl "http://$HOST/default?cmd=Start"
+        ;;
+    # TODO: seek commands
     *)
         echo "\"$1\" is not a supported command"
         ;;
