@@ -75,9 +75,11 @@ if [ -d "$dir" ]; then
     echo "--- Found at least one file in '$dir', syncing..."
     sleep 1
 
-    # TODO: check whether $dir already starts with $prefix and skip rename
-    rename -A "$prefix" "$dir"
-    dir="$prefix$dir"
+    # prefix dir unless it's already prefixed
+    if ! echo "$dir" | grep -q "^$prefix"; then
+        rename -A "$prefix" "$dir"
+        dir="$prefix$dir"
+    fi
 
     let i=1
     while ! rsync -zva "$dir" "$incoming"; do
