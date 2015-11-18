@@ -44,6 +44,19 @@ function error {
     exit 9000
 }
 
+function check-for-files {
+    dir=$1
+    for f in "$dir"/*; do
+        if [ -f "$f" ]; then
+            return
+        fi
+    done
+
+    # TODO: instead of bailing, recurse into the first dir and proceed to sync that
+    #       (still bail if dir is totally empty, or just auto-delete it)
+    error "--- OOPS: no regular files in '$dir', bailing for now"
+}
+
 # TODO: add ability to specify a file/dir instead of grabbing the smallest
 #       possibly tricky to detect dir that results from extracting the file
 
@@ -57,11 +70,10 @@ fi
 
 dir=`ls -Sr | head -n1 | tr -d '/'`
 if [ -d "$dir" ]; then
-    echo "--- Found dir '$dir', syncing..."
+    echo "--- Found dir '$dir', checking for files..."
+    check-for-files "$dir"
+    echo "--- Found at least one file in '$dir', syncing..."
     sleep 1
-
-    # TODO: try to magically detect itunes-style nested dirs and unpack them
-    #       (eg, dirs where all the contents are other dirs)
 
     # TODO: check whether $dir already starts with $prefix and skip rename
     rename -A "$prefix" "$dir"
