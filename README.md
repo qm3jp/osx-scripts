@@ -4,4 +4,6 @@ Command-line frontend to the [foo_httpcontrol](https://bitbucket.org/oblikoamora
 ## nastify
 Unpack an archive and move it somewhere. I wrote this to help get a bunch of free music I'd downloaded from various netlabels onto my NAS, hence the name.
 
+Also flattens out nested directory structure, so that you wind up with one album per directory. This feature is a bit rudimentary and limits the script's utility as a general tool, but is a great help for the music organization use case.
+
 Highly recommended: [Pterodactyl Squad](http://ptesquad.com), [8bitpeoples](http://8bitpeoples.com), [Ubiktune](http://ubiktune.com)

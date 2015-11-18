@@ -4,6 +4,7 @@
 # steps:
 # find the smallest archive or dir in ./
 #   (unpack if necessary)
+#   (also flattens nested directories)
 # rename with prefix
 # sync to 'incoming' dir, auto-retry if fail
 # delete local copy
@@ -17,7 +18,7 @@ prefix='!!-'
 # max retries if sync fails
 maxtries=5
 # max depth we will recurse into the dir tree
-maxdepth=1
+maxdepth=10
 
 function extract {
     # I use The Unarchiver, which automagically creates a subdir and
@@ -105,6 +106,7 @@ function sync-one-archive {
     local dir=`ls -Sr | head -n1 | tr -d '/'`
     if [ -d "$dir" ]; then
         echo "--- Found dir '$dir', checking for files..."
+        # TODO: make this check & recursion optional
         check-for-files "$dir"
         echo "--- Found at least one file in '$dir', syncing..."
         sleep 1
