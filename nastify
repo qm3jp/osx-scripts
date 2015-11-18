@@ -5,13 +5,13 @@
 # find the smallest archive or dir in ./
 #   (unpack if necessary)
 # rename with prefix
-# sync to 'pending' dir, auto-retry if fail
+# sync to 'incoming' dir, auto-retry if fail
 # delete local copy
 
 # now includes brief pauses for enhanced legibility!
 # ALSO: talks so you don't have to pay attention!
 
-pending="/Volumes/music/dl-legit/pending/"
+incoming="/Volumes/music/incoming/"
 maxtries=5
 prefix='!!-'
 
@@ -62,7 +62,7 @@ if [ -d "$dir" ]; then
     dir="$prefix$dir"
 
     let i=1
-    while ! rsync -zva "$dir" "$pending"; do
+    while ! rsync -zva "$dir" "$incoming"; do
         if [ $i -ge $maxtries ]; then
             error "--- OOPS: failed to sync after $i attempts, bailing!"
         fi
