@@ -16,6 +16,8 @@ incoming="/Volumes/music/incoming/"
 prefix='!!-'
 # max retries if sync fails
 maxtries=5
+# max depth we will recurse into the dir tree
+maxdepth=1
 
 function extract {
     # I use The Unarchiver, which automagically creates a subdir and
@@ -34,7 +36,7 @@ function extract {
 trap "echo '--- Exited!'; exit 23;" SIGINT SIGTERM
 
 function notify {
-    voice="Zarvox"
+    local voice="Zarvox"
     if [ "$2" ]; then
         voice="$2"
     fi
@@ -45,62 +47,89 @@ function notify {
 function error {
     echo $1
     notify "THE SYSTEM, IS DOWN" Ralph
-    exit 9000
+    exit 99
 }
 
-function check-for-files {
-    dir=$1
-    for f in "$dir"/*; do
-        if [ -f "$f" ]; then
-            return
-        fi
-    done
-
-    # TODO: instead of bailing, recurse into the first dir and proceed to sync that
-    #       (still bail if dir is totally empty, or just auto-delete it)
-    error "--- OOPS: no regular files in '$dir', bailing for now"
-}
-
-
-zip=`ls -Sr | head -n1`
-if [ -f "$zip" ]; then
-    echo "--- Found file '$zip', decompressing..."
-    sleep 1
-
-    extract "$zip"
-fi
-
-dir=`ls -Sr | head -n1 | tr -d '/'`
-if [ -d "$dir" ]; then
-    echo "--- Found dir '$dir', checking for files..."
-    check-for-files "$dir"
-    echo "--- Found at least one file in '$dir', syncing..."
-    sleep 1
-
-    # prefix dir unless it's already prefixed
-    if ! echo "$dir" | grep -q "^$prefix"; then
-        rename -A "$prefix" "$dir"
-        dir="$prefix$dir"
-    fi
-
-    let i=1
-    while ! rsync -zva "$dir" "$incoming"; do
-        if [ $i -ge $maxtries ]; then
-            error "--- OOPS: failed to sync after $i attempts, bailing!"
-        fi
-
-        let i=$i+1
-        printf "\n\n--- OOPS: sync failure, attempting #$i\n\n"
-    done
-    notify "TAKE OFF EVERY ZIG"
-
-    echo -n "looks ok? "
+function confirm-and-delete {
+    # use default msg if unspecified
+    echo -n "${2:-ok to delete '$dir'?} "
+    local ok
     read ok
+    # TODO: more permissive assent
     if [ "$ok" = "y" ]; then
         echo "--- k, deleting local copy"
         notify "DELETED!"
-        rm -rv "$dir"
+        rm -rv "$1"
     fi
-else
-    error "--- OOPS: '$dir' isn't a dir, something's funky"
-fi
+}
+
+function check-for-files {
+    local dir=$1
+    for f in "$dir"/*; do
+        if [ -f "$f" ]; then
+            return 0
+        fi
+    done
+
+    let maxdepth--
+    if [ $maxdepth -lt 0 ]; then
+        error "--- OOPS: went too deep into the directory tree, bailing"
+    fi
+
+    echo "--- No regular files found, looking deeper..."
+    cd "$dir"
+    sync-one-archive
+    if [ $? -eq 44 ]; then
+        cd ..
+        confirm-and-delete "$dir"
+    fi
+
+    # explicitly exit here to avoid unrolling the stack
+    exit 0
+}
+
+function sync-one-archive {
+    if [ ! "$(ls)" ]; then
+        echo "--- Looks is empty, we're done here"
+        return 44
+    fi
+
+    local zip=`ls -Sr | head -n1`
+    if [ -f "$zip" ]; then
+        echo "--- Found file '$zip', decompressing..."
+        sleep 1
+
+        extract "$zip"
+    fi
+
+    local dir=`ls -Sr | head -n1 | tr -d '/'`
+    if [ -d "$dir" ]; then
+        echo "--- Found dir '$dir', checking for files..."
+        check-for-files "$dir"
+        echo "--- Found at least one file in '$dir', syncing..."
+        sleep 1
+
+        # prefix dir unless it's already prefixed
+        if ! echo "$dir" | grep -q "^$prefix"; then
+            rename -A "$prefix" "$dir"
+            dir="$prefix$dir"
+        fi
+
+        local i=1
+        while ! rsync -zva "$dir" "$incoming"; do
+            if [ $i -ge $maxtries ]; then
+                error "--- OOPS: failed to sync after $i attempts, bailing!"
+            fi
+
+            let i++
+            printf "\n\n--- OOPS: sync failure, attempting #$i\n\n"
+        done
+        notify "TAKE OFF EVERY ZIG"
+
+        confirm-and-delete "$dir"
+    else
+        error "--- OOPS: '$dir' isn't a dir, something's funky"
+    fi
+}
+
+sync-one-archive
