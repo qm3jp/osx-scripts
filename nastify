@@ -90,7 +90,7 @@ function check-for-files {
 
 function sync-one-archive {
     if [ ! "$(ls)" ]; then
-        echo "--- Looks is empty, we're done here"
+        echo "--- Looks empty, we're done here"
         return 44
     fi
 
