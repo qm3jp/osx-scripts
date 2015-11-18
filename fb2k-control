@@ -1,0 +1,30 @@
+#!/bin/bash
+# control foobar2000 via the foo_httpcontrol component
+# see: https://bitbucket.org/oblikoamorale/foo_httpcontrol
+
+HOST="localhost:8888"
+
+case "$1" in
+    toggle)
+        curl "http://$HOST/default/?cmd=PlayOrPause"
+        ;;
+    next)
+        curl "http://$HOST/default/?cmd=StartNext"
+        ;;
+    rand)
+        curl "http://$HOST/default/?cmd=StartRandom"
+        ;;
+    prev)
+        curl "http://$HOST/default?cmd=StartPrevious"
+        ;;
+    restart) # restart current track; XXX: better name for this cmd pls
+        # Start by itself will unpause if paused, or start over if currently playing
+        # need to stop first for consistent behavior
+        curl "http://$HOST/default?cmd=Stop"
+        curl "http://$HOST/default?cmd=Start"
+        ;;
+    # TODO: seek commands
+    *)
+        echo "\"$1\" is not a supported command"
+        ;;
+esac
