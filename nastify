@@ -27,6 +27,8 @@ function extract {
 # -------------------------------------------------------
 # --- stuff below here probably doesn't need editing ----
 # -------------------------------------------------------
+# TODO: add ability to specify a file/dir instead of grabbing the smallest
+#       possibly tricky to detect dir that results from extracting the file
 
 # need to be able to manually exit out of the loop
 trap "echo '--- Exited!'; exit 23;" SIGINT SIGTERM
@@ -59,8 +61,6 @@ function check-for-files {
     error "--- OOPS: no regular files in '$dir', bailing for now"
 }
 
-# TODO: add ability to specify a file/dir instead of grabbing the smallest
-#       possibly tricky to detect dir that results from extracting the file
 
 zip=`ls -Sr | head -n1`
 if [ -f "$zip" ]; then
