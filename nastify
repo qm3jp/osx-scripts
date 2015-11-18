@@ -1,5 +1,5 @@
 #!/bin/bash
-# unpack an archives and copy it to NAS
+# unpack an archive and copy it to NAS
 
 # steps:
 # find the smallest archive or dir in ./
