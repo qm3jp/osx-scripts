@@ -44,6 +44,9 @@ function error {
     exit 9000
 }
 
+# TODO: add ability to specify a file/dir instead of grabbing the smallest
+#       possibly tricky to detect dir that results from extracting the file
+
 zip=`ls -Sr | head -n1`
 if [ -f "$zip" ]; then
     echo "--- Found file '$zip', decompressing..."
@@ -56,6 +59,9 @@ dir=`ls -Sr | head -n1 | tr -d '/'`
 if [ -d "$dir" ]; then
     echo "--- Found dir '$dir', syncing..."
     sleep 1
+
+    # TODO: try to magically detect itunes-style nested dirs and unpack them
+    #       (eg, dirs where all the contents are other dirs)
 
     # TODO: check whether $dir already starts with $prefix and skip rename
     rename -A "$prefix" "$dir"
