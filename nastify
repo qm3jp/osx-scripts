@@ -11,9 +11,11 @@
 # now includes brief pauses for enhanced legibility!
 # ALSO: talks so you don't have to pay attention!
 
+# target dir
 incoming="/Volumes/music/incoming/"
-maxtries=5
 prefix='!!-'
+# max retries if sync fails
+maxtries=5
 
 function extract {
     # I use The Unarchiver, which automagically creates a subdir and
